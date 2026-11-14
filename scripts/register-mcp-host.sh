@@ -27,17 +27,45 @@ fi
 CODEX_CFG="$HOME/.codex/config.toml"
 if command -v codex >/dev/null 2>&1; then
   if grep -q '^\[mcp_servers.hub-knowledge\]' "$CODEX_CFG" 2>/dev/null; then
-    echo "Codex: [mcp_servers.hub-knowledge] já existe em $CODEX_CFG (não alterado)"
+    echo "Codex: hub-knowledge já existe em $CODEX_CFG (não alterado)"
   else
-    echo "Codex: acrescentar em $CODEX_CFG:"
-    printf '  [mcp_servers.hub-knowledge]\n  url = "%s"\n  bearer_token_env_var = "HUB_MCP_TOKEN"\n' "$URL"
-    if confirm "Acrescentar no Codex?"; then
+    echo "Codex: codex mcp add hub-knowledge --url $URL --bearer-token-env-var HUB_MCP_TOKEN"
+    if confirm "Registrar no Codex?"; then
       cp "$CODEX_CFG" "$CODEX_CFG.bak.$(date +%s)"
-      printf '\n[mcp_servers.hub-knowledge]\nurl = "%s"\nbearer_token_env_var = "HUB_MCP_TOKEN"\n' "$URL" >> "$CODEX_CFG"
+      codex mcp add hub-knowledge --url "$URL" --bearer-token-env-var HUB_MCP_TOKEN
     fi
   fi
-  echo "Codex lê o token de HUB_MCP_TOKEN. Adicione ao seu shell (ex.: ~/.bashrc):"
-  echo "  export HUB_MCP_TOKEN=\"\$(cat \"\${XDG_RUNTIME_DIR:-/run/user/\$(id -u)}/agentes-hub/host.token\" 2>/dev/null)\""
+  # Opcional e desligado por padrão: sem aprovação automática, `codex exec` (não interativo)
+  # não consegue chamar as ferramentas do hub. Trade-off: uma injeção poderia fazer o Codex
+  # gravar memória sem perguntar (a escrita continua saneada, classificada e marcada trust=agent).
+  if ! grep -q 'default_tools_approval_mode' "$CODEX_CFG" 2>/dev/null; then
+    echo "Codex: aprovar automaticamente as ferramentas do hub-knowledge (necessário para 'codex exec')?"
+    echo "  Alternativa sem mudar a config: codex exec -c 'mcp_servers.hub-knowledge.default_tools_approval_mode=\"approve\"' ..."
+    read -r -p "Dispensar a aprovação só para o hub-knowledge? [s/N] " ans
+    if [ "$ans" = "s" ] || [ "$ans" = "S" ]; then
+      cp "$CODEX_CFG" "$CODEX_CFG.bak.$(date +%s)"
+      python3 - "$CODEX_CFG" <<'PY'
+import pathlib, re, sys
+p = pathlib.Path(sys.argv[1])
+t = p.read_text()
+m = re.search(r'(?ms)^\[mcp_servers\.hub-knowledge\]\n(.*?)(?=^\[|\Z)', t)
+body = m.group(1).rstrip("\n") + '\ndefault_tools_approval_mode = "approve"\n\n'
+p.write_text(t[:m.start(1)] + body + t[m.end(1):])
+PY
+    fi
+  fi
+  # O token não fica no config.toml: o Codex lê HUB_MCP_TOKEN do ambiente.
+  # shellcheck disable=SC2016  # a expansão acontece quando o shell do usuário ler o ~/.bashrc
+  LINE='export HUB_MCP_TOKEN="$(cat "${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/agentes-hub/host.token" 2>/dev/null)"  # agentes-hub'
+  if grep -qF '# agentes-hub' "$HOME/.bashrc" 2>/dev/null; then
+    echo "\$HOME/.bashrc já exporta HUB_MCP_TOKEN"
+  else
+    echo "Codex precisa de HUB_MCP_TOKEN no ambiente. Linha para ~/.bashrc:"
+    echo "  $LINE"
+    if confirm "Acrescentar ao ~/.bashrc?"; then
+      printf '\n%s\n' "$LINE" >> "$HOME/.bashrc"
+    fi
+  fi
 fi
 
 # --- Antigravity (agy): formato de config MCP varia por versão; só imprime o bloco.

@@ -15,6 +15,8 @@ domains = [
   "pastebin.com", "paste.ee", "hastebin.com", "transfer.sh", "0x0.st",
   "file.io", "webhook.site", "requestbin.com", "ngrok.io", "ngrok-free.app",
   "pipedream.net", "interact.sh", "oast.fun", "burpcollaborator.net",
+  # Telemetria do OpenBot (enviada por padrão, antes mesmo do login; ver ADR 0005).
+  "analytics.openbot.run",
 ]
 
 [profiles.executor]
@@ -23,10 +25,19 @@ domains = [
   ".anthropic.com", "claude.ai",
   ".openai.com", "chatgpt.com",
   ".googleapis.com", "accounts.google.com",
-  "openbot.run", ".openbot.run",
+  ".openbot.run",
   "github.com", ".githubusercontent.com",
   "registry.npmjs.org", "pypi.org", "files.pythonhosted.org",
 ]
+
+# CONNECT para portas além de 443, só para hosts específicos.
+# TURN do OpenBot: o Chromium tenta TURN-TCP/TLS pelo proxy quando não há UDP
+# (medido na Fase 0: turn-us e turn2.openbot.run, portas 3478 e 5349). Sem isto o app não conecta.
+# LIMITE: um relay TURN é um canal genérico de dados; ver docs/MODELO-DE-AMEACAS.md.
+[[profiles.executor.connect]]
+id = "openbot-turn"
+domain_regex = '^turn[a-z0-9-]*\.openbot\.run$'
+ports = [3478, 5349]
 
 [profiles.reader]
 description = "Fase 3: Pesquisador. Web aberta menos a denylist; não tem dados privados."

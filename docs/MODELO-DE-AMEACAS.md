@@ -33,10 +33,13 @@ As defesas que **garantem** algo são as de arquitetura, que removem uma das tr�
 | Agente do OpenBot executando comando perigoso | container + proxy (forte); hooks/execpolicy (fraco) | ver nota 1 | 2 |
 | Agente alterando `CLAUDE.md`, `.mcp.json`, `.vscode/` etc. para atacar o host | `pull-from-agents.sh` bloqueia `policy/protected-paths.toml` | **forte** | 2 |
 | Exfiltração pelo domínio do provedor (chave do atacante, Files API) | nenhuma completa; o proxy só reduz | **aberto** | 2 |
+| Exfiltração pelo relay TURN do OpenBot (exceção 3478/5349 no proxy) | só hosts `turn*.openbot.run`; credenciais TURN são do OpenBot | **aberto** | 2 |
+| Agente lendo o token do provedor (`~/.codex/auth.json`) | login dedicado e revogável; proxy limita destinos | fraca | 2 |
+| Telemetria do OpenBot (`analytics.openbot.run`) | bloqueada em `policy/egress.toml` | **forte** | 2 |
 
 ## Limites conhecidos (não resolvidos)
 
-1. **Hooks e regras de comando são contornáveis.** Regex não resolve ofuscação (`c''at`, base64, scripts temporários). Elas servem como lombada e trilha de auditoria, não como fronteira. A fronteira é o container + o proxy.
+1. **Hooks e regras de comando são contornáveis.** Regex não resolve ofuscação (`c''at`, base64, scripts temporários). Elas servem como lombada e trilha de auditoria, não como fronteira. A fronteira é o container + o proxy. Medido na Fase 0 (ADR 0005): o execpolicy do Codex é aplicado via OpenBot, mas não pega `git -C dir push`, `sh -c '…'`, caminhos absolutos, `python3 -c` nem `/proc/self/environ`.
 2. **Domínios de provedor liberados permitem exfiltração.** Um agente injetado pode enviar dados para `api.anthropic.com` ou `api.openai.com` usando uma chave de API **do atacante** (ex.: upload pela Files API). Fechar isso exige inspeção TLS e regras por chave, o que está fora do escopo.
 3. **O maior risco atual está no host, não no hub.** CLIs que rodam no host com acesso total (por exemplo, Antigravity em modo sem sandbox, Codex com `danger-full-access`) leem a web e o seu home. Recomendações:
    - usar o Codex com `--sandbox workspace-write` por padrão;

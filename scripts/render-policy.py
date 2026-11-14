@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import shlex
 import sys
 import tomllib
@@ -109,6 +110,16 @@ def render_gemini(cmd: dict) -> dict[str, str]:
 
 
 # ---------------------------------------------------------------- Squid
+def check_domains(name: str, domains: list[str]) -> None:
+    """Squid recusa ACL com 'x.com' e '.x.com' juntos (o segundo já cobre o primeiro)."""
+    for d in domains:
+        if d == "*":
+            continue
+        for other in domains:
+            if other != d and other.startswith(".") and (d == other[1:] or d.endswith(other)):
+                raise SystemExit(f"egress.toml [{name}]: '{d}' já está coberto por '{other}'; remova um deles")
+
+
 def render_squid(egress: dict) -> dict[str, str]:
     local = load_optional(OVERLAY / "egress.local.toml")
     deny = egress["deny"]
@@ -125,15 +136,27 @@ def render_squid(egress: dict) -> dict[str, str]:
         "acl deny_dst dst " + " ".join(deny["cidrs"]),
         "acl deny_dom dstdomain " + " ".join(deny["domains"]),
     ]
+    check_domains("deny", deny["domains"])
     rules = [
-        "http_access deny !Safe_ports",
-        "http_access deny CONNECT !SSL_ports",
         "http_access deny deny_dom",
         # dst resolve o nome: também bloqueia domínios públicos que apontam para IP privado.
         "http_access deny deny_dst",
     ]
+    # Exceções de porta por host (antes das regras de porta segura).
+    for name, prof in egress["profiles"].items():
+        for rule in prof.get("connect", []):
+            rid = re.sub(r"[^a-z0-9_]", "_", rule["id"].lower())
+            ports = " ".join(str(int(p)) for p in rule["ports"])
+            out.append(f"acl cx_{rid}_dom dstdom_regex -i {rule['domain_regex']}")
+            out.append(f"acl cx_{rid}_ports port {ports}")
+            rules.append(f"http_access allow p_{name} CONNECT cx_{rid}_dom cx_{rid}_ports")
+    rules += [
+        "http_access deny !Safe_ports",
+        "http_access deny CONNECT !SSL_ports",
+    ]
     for name, prof in egress["profiles"].items():
         domains = list(prof["domains"]) + list(local.get("extra", {}).get(name, []))
+        check_domains(name, domains)
         if domains == ["*"]:
             rules.append(f"http_access allow p_{name}")
         else:

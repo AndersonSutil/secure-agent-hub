@@ -1,0 +1,5 @@
+# DL3008 (fixar versão de pacotes apt): a imagem base já é fixada por digest e os pacotes
+# vêm do Debian stable dessa imagem; fixar versões apt quebra a cada point release sem
+# ganho real de reprodutibilidade.
+ignored:
+  - DL3008

@@ -2,6 +2,8 @@
 # sops (binário oficial, SHA256 conferido), age, gitleaks, shellcheck, python3.
 FROM docker.io/library/debian:trixie-slim@sha256:7378260c0a098d27ac206225db5e7d92b8c7c84ea7afccc86eeb513756bbd392
 
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
 ARG SOPS_VERSION=3.13.3
 ARG SOPS_SHA256=e5bec3346a873ae91d871550f3e698c1aad962aff462a080e40f25fde17fef6b
 

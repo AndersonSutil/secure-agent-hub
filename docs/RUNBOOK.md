@@ -37,6 +37,16 @@ git clone https://github.com/<você>/<seu-overlay-privado> agentes-hub/overlay  
 | Ver chamadas MCP | `tail -f $HUB_DATA_DIR/logs/mcp-calls.jsonl` |
 | Backup | `scripts/backup.sh` |
 
+## Usar o hub a partir das CLIs
+
+- **Claude Code** e **Codex interativo:** as ferramentas `hub-knowledge` aparecem normalmente. O Codex pede aprovação a cada chamada.
+- **`codex exec` (não interativo):** como não há quem aprove, a chamada falha com `MCP tool call requires approval`. Libere a aprovação **só para aquela execução**, sem mudar a config:
+  ```bash
+  codex exec -c 'mcp_servers.hub-knowledge.default_tools_approval_mode="approve"' "…"
+  ```
+  O Codex lê o token de `HUB_MCP_TOKEN` (exportado no `~/.bashrc` pelo `register-mcp-host.sh`).
+- Dispensar a aprovação de vez na config (`default_tools_approval_mode = "approve"` em `[mcp_servers.hub-knowledge]`) é possível, mas tem um custo: uma injeção poderia gravar memória sem perguntar.
+
 ## Adicionar uma fonte
 
 1. Acrescente um bloco `[[source]]` em `overlay/sources.toml`. Use `trust = "untrusted"` e `collection = "docs_untrusted"` para qualquer coisa que veio da internet.

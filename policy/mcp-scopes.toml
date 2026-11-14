@@ -1,0 +1,31 @@
+# Escopos do servidor MCP hub-rag. Cada bearer token pertence a exatamente um escopo.
+# Os tokens ficam em overlay/secrets/hub.sops.yaml (chaves mcp_token_<escopo>).
+version = 1
+
+[scopes.host]
+description = "CLIs do host (Claude Code, Codex, agy). Leitura de docs e memória; escreve memória."
+read = ["docs", "docs_untrusted", "memory"]
+write = ["memory"]
+tools = ["search_knowledge", "remember", "recall", "list_sources"]
+rate_per_minute = 120
+
+[scopes.executor]
+description = "Fase 2: agentes do OpenBot Executor. Sem reindex; memória gravada como trust=agent."
+read = ["docs", "docs_untrusted", "memory"]
+write = ["memory"]
+tools = ["search_knowledge", "remember", "recall", "list_sources"]
+rate_per_minute = 60
+
+[scopes.reader]
+description = "Fase 3: Pesquisador. NÃO lê nada privado; só envia resumos para docs_untrusted."
+read = []
+write = ["docs_untrusted"]
+tools = ["submit_research"]
+rate_per_minute = 30
+
+[scopes.admin]
+description = "Operação local (scripts/index.sh). Nunca entregue a um agente."
+read = ["docs", "docs_untrusted", "memory", "quarantine", "code"]
+write = ["docs", "docs_untrusted", "memory", "code"]
+tools = ["search_knowledge", "remember", "recall", "list_sources", "reindex"]
+rate_per_minute = 600

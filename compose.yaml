@@ -1,0 +1,83 @@
+# agentes-hub: Fase 1 (RAG + memória via MCP). Use sempre scripts/hub-compose.sh,
+# que adiciona overlay/.env, a montagem das fontes e (se houver) a GPU.
+name: agentes-hub
+
+networks:
+  hub-internal:
+    # Sem rota para a internet e sem DNS externo (verificado em docs/adr/0002).
+    internal: true
+
+x-hardening: &hardening
+  restart: unless-stopped
+  security_opt: ["no-new-privileges:true"]
+  networks: [hub-internal]
+
+services:
+  qdrant:
+    <<: *hardening
+    image: docker.io/qdrant/qdrant:v1.20.1@sha256:22c405234d01d6593a7abc9ecc4bd185f14c3d78926325367be94a9c317ca222
+    environment:
+      QDRANT__TELEMETRY_DISABLED: "true"
+    volumes:
+      - ${HUB_DATA_DIR:?defina HUB_DATA_DIR no overlay/.env}/qdrant:/qdrant/storage:Z
+      - ${HUB_DATA_DIR}/qdrant-snapshots:/qdrant/snapshots:Z
+    cap_drop: [ALL]
+    mem_limit: 2g
+    pids_limit: 512
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c ':> /dev/tcp/127.0.0.1/6333' || exit 1"]
+      interval: 15s
+      timeout: 3s
+      retries: 10
+
+  ollama-embed:
+    <<: *hardening
+    image: docker.io/ollama/ollama:0.40.16@sha256:a372a1c0d1e15b68e9521189785c3ca17795c26c2356f8b1b10122cfb59ed0d7
+    environment:
+      OLLAMA_HOST: 0.0.0.0:11434
+      OLLAMA_KEEP_ALIVE: 30m
+      OLLAMA_NUM_PARALLEL: "2"
+    volumes:
+      # O modelo é baixado por scripts/pull-embed-model.sh (esta rede não tem internet).
+      - ${HUB_DATA_DIR}/ollama-embed:/root/.ollama:Z
+    mem_limit: 6g
+    pids_limit: 512
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+
+  hub-rag:
+    <<: *hardening
+    image: localhost/hub-rag:${HUB_RAG_TAG:-dev}
+    build:
+      context: ./rag
+      args:
+        WITH_GUARD: ${HUB_WITH_GUARD:-1}
+    # Roda como uid 10001 (um subuid no host, não o seu usuário). O bootstrap faz
+    # `podman unshare chown 10001` nas pastas alerts/logs/models.
+    user: "10001:10001"
+    read_only: true
+    tmpfs: ["/tmp:size=64m"]
+    cap_drop: [ALL]
+    mem_limit: 3g
+    pids_limit: 256
+    ports:
+      - "127.0.0.1:${HUB_MCP_PORT:-8765}:8765"
+    environment:
+      HUB_EMBED_MODEL: ${HUB_EMBED_MODEL:-qwen3-embedding:0.6b}
+      HUB_TOKENS_FILE: /run/hub/hub_mcp_tokens
+    volumes:
+      - ./policy:/opt/hub/policy:ro,z
+      - ${HUB_OVERLAY_DIR:-./overlay}/sources.toml:/opt/hub/overlay/sources.toml:ro,z
+      # Tokens decriptados ficam em tmpfs do host ($XDG_RUNTIME_DIR), nunca em disco.
+      - ${HUB_RUNTIME_DIR:?rode scripts/secrets-load.sh}/hub_mcp_tokens:/run/hub/hub_mcp_tokens:ro,z
+      - ${HUB_DATA_DIR}/alerts:/data/alerts:Z
+      - ${HUB_DATA_DIR}/logs:/data/logs:Z
+      - ${HUB_DATA_DIR}/models:/models:ro,Z
+    depends_on:
+      qdrant:
+        condition: service_healthy
+      ollama-embed:
+        condition: service_healthy

@@ -1,0 +1,47 @@
+{
+  "permissions": {
+    "deny": [
+      "Bash(nc:*)",
+      "Bash(ncat:*)",
+      "Bash(netcat:*)",
+      "Bash(socat:*)",
+      "Bash(telnet:*)",
+      "Bash(ssh:*)",
+      "Bash(scp:*)",
+      "Bash(sftp:*)",
+      "Bash(rsync:*)",
+      "Bash(printenv:*)",
+      "Bash(env:*)",
+      "Bash(git push:*)",
+      "Bash(podman:*)",
+      "Bash(docker:*)",
+      "Bash(nsenter:*)",
+      "Bash(chroot:*)",
+      "Bash(mount:*)",
+      "Bash(sudo:*)",
+      "Bash(su:*)",
+      "Read(//run/secrets/**)",
+      "Read(//proc/*/environ)",
+      "Read(**/.codex/auth.json)",
+      "Read(**/.claude/.credentials.json)",
+      "Read(**/.claude.json)",
+      "Read(**/.gemini/oauth_creds.json)",
+      "Read(**/.config/sops/**)",
+      "Read(**/.ssh/**)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Read|Write|Edit|MultiEdit|NotebookEdit|Grep|Glob",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 /opt/hub/harness/claude/hooks/guard.py",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

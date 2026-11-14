@@ -1,0 +1,55 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: policy renderizada
+        run: python scripts/render-policy.py --check
+
+      - name: lint + testes (hub-rag)
+        working-directory: rag
+        run: |
+          pip install -e ".[dev]"
+          ruff check .
+          pytest -q
+
+      - name: shellcheck
+        run: shellcheck scripts/*.sh
+
+      - name: hadolint
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: rag/Dockerfile
+
+      - name: hadolint (tools)
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: tools/Dockerfile
+
+      - name: compose válido
+        run: |
+          mkdir -p overlay && cp .env.example overlay/.env && cp sources.example.toml overlay/sources.toml
+          HUB_RUNTIME_DIR=/tmp docker compose --env-file overlay/.env -f compose.yaml -f compose.gpu.yaml config -q
+
+      - name: gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

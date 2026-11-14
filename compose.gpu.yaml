@@ -1,0 +1,13 @@
+# Incluído por scripts/hub-compose.sh quando EMBED_GPU != cpu.
+# Requer NVIDIA Container Toolkit com CDI gerado (nvidia-ctk cdi generate).
+#
+# label=disable: com SELinux enforcing, o container_t não acessa /dev/nvidia* sem o
+# boolean container_use_devices. Desligamos o rótulo só neste container, que não tem
+# segredos nem internet. Alternativa (root): sudo setsebool -P container_use_devices=1
+# e remover a linha abaixo.
+services:
+  ollama-embed:
+    devices:
+      - nvidia.com/gpu=${EMBED_GPU}
+    security_opt:
+      - label=disable

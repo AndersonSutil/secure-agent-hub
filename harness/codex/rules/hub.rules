@@ -1,0 +1,25 @@
+# GERADO por scripts/render-policy.py a partir de policy/. NÃO EDITE.
+# execpolicy do Codex: só casa por prefixo de argv.
+
+# pipe-to-shell: sem equivalente por prefixo (só o hook/proxy cobre).
+prefix_rule(pattern = ["nc"], decision = "forbidden", justification = "Canais de rede fora do proxy HTTP(S).")
+prefix_rule(pattern = ["ncat"], decision = "forbidden", justification = "Canais de rede fora do proxy HTTP(S).")
+prefix_rule(pattern = ["netcat"], decision = "forbidden", justification = "Canais de rede fora do proxy HTTP(S).")
+prefix_rule(pattern = ["socat"], decision = "forbidden", justification = "Canais de rede fora do proxy HTTP(S).")
+prefix_rule(pattern = ["telnet"], decision = "forbidden", justification = "Canais de rede fora do proxy HTTP(S).")
+prefix_rule(pattern = ["ssh"], decision = "forbidden", justification = "Canais de rede fora do proxy HTTP(S).")
+prefix_rule(pattern = ["scp"], decision = "forbidden", justification = "Canais de rede fora do proxy HTTP(S).")
+prefix_rule(pattern = ["sftp"], decision = "forbidden", justification = "Canais de rede fora do proxy HTTP(S).")
+prefix_rule(pattern = ["rsync"], decision = "forbidden", justification = "Canais de rede fora do proxy HTTP(S).")
+prefix_rule(pattern = ["printenv"], decision = "forbidden", justification = "Despeja variáveis de ambiente (tokens).")
+prefix_rule(pattern = ["env"], decision = "forbidden", justification = "Despeja variáveis de ambiente (tokens).")
+prefix_rule(pattern = ["git", "push"], decision = "forbidden", justification = "Publicação só pelo broker, com aprovação humana.")
+# git-hooks: sem equivalente por prefixo (só o hook/proxy cobre).
+# credential-files: sem equivalente por prefixo (só o hook/proxy cobre).
+prefix_rule(pattern = ["podman"], decision = "forbidden", justification = "Ferramentas de container/host não existem para o agente.")
+prefix_rule(pattern = ["docker"], decision = "forbidden", justification = "Ferramentas de container/host não existem para o agente.")
+prefix_rule(pattern = ["nsenter"], decision = "forbidden", justification = "Ferramentas de container/host não existem para o agente.")
+prefix_rule(pattern = ["chroot"], decision = "forbidden", justification = "Ferramentas de container/host não existem para o agente.")
+prefix_rule(pattern = ["mount"], decision = "forbidden", justification = "Ferramentas de container/host não existem para o agente.")
+prefix_rule(pattern = ["sudo"], decision = "forbidden", justification = "Ferramentas de container/host não existem para o agente.")
+prefix_rule(pattern = ["su"], decision = "forbidden", justification = "Ferramentas de container/host não existem para o agente.")

@@ -1,0 +1,53 @@
+{
+  "_generated": "GERADO por scripts/render-policy.py a partir de policy/. NÃO EDITE.",
+  "bash_deny": [
+    {
+      "id": "pipe-to-shell",
+      "why": "Executa código baixado sem revisão.",
+      "regex": "(curl|wget|fetch)\\b[^|;&]*\\|\\s*(sudo\\s+)?(ba|z|da|k)?sh\\b"
+    },
+    {
+      "id": "raw-network",
+      "why": "Canais de rede fora do proxy HTTP(S).",
+      "regex": "(^|[\\s;&|(])(nc|ncat|netcat|socat|telnet|ssh|scp|sftp|rsync)\\s"
+    },
+    {
+      "id": "env-dump",
+      "why": "Despeja variáveis de ambiente (tokens).",
+      "regex": "(/proc/[^\\s]*/environ|(^|[\\s;&|(])(printenv|env)\\s*($|[;&|]))"
+    },
+    {
+      "id": "git-push",
+      "why": "Publicação só pelo broker, com aprovação humana.",
+      "regex": "(^|[\\s;&|(])git\\s+(-C\\s+\\S+\\s+)?push\\b"
+    },
+    {
+      "id": "git-hooks",
+      "why": "Hooks git executam código em quem fizer checkout.",
+      "regex": "\\.git/hooks"
+    },
+    {
+      "id": "credential-files",
+      "why": "Leitura de credenciais de provedores/segredos.",
+      "regex": "(\\.codex/auth\\.json|\\.claude/\\.credentials|\\.claude\\.json|\\.gemini/oauth|/run/secrets|\\.config/sops|\\.ssh/)"
+    },
+    {
+      "id": "container-escape-tools",
+      "why": "Ferramentas de container/host não existem para o agente.",
+      "regex": "(^|[\\s;&|(])(podman|docker|nsenter|chroot|mount|sudo|su)\\s"
+    }
+  ],
+  "read_deny_globs": [
+    "/run/secrets/**",
+    "/proc/*/environ",
+    "**/.codex/auth.json",
+    "**/.claude/.credentials.json",
+    "**/.claude.json",
+    "**/.gemini/oauth_creds.json",
+    "**/.config/sops/**",
+    "**/.ssh/**"
+  ],
+  "write_allow_roots": [
+    "/workspaces"
+  ]
+}

@@ -1,0 +1,6 @@
+[Unit]
+Description=agentes-hub: reindexação incremental das fontes
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/env bash @HUB_ROOT@/scripts/index.sh

@@ -1,0 +1,12 @@
+[Unit]
+Description=agentes-hub: carregar tokens e subir containers no login
+After=default.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/env bash @HUB_ROOT@/scripts/up.sh
+ExecStop=/usr/bin/env bash @HUB_ROOT@/scripts/hub-compose.sh stop
+
+[Install]
+WantedBy=default.target

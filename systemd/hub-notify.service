@@ -1,0 +1,11 @@
+[Unit]
+Description=agentes-hub: notificações de alertas de segurança
+After=graphical-session.target
+
+[Service]
+ExecStart=/usr/bin/env bash @HUB_ROOT@/scripts/hub-notify.sh @HUB_DATA_DIR@/alerts/alerts.jsonl
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=default.target

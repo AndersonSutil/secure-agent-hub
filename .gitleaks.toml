@@ -1,0 +1,6 @@
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Fixtures de teste com segredos falsos de propósito"
+paths = ['''rag/tests/fixtures/''']

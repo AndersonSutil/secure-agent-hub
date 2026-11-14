@@ -1,0 +1,22 @@
+# Copiado para overlay/sources.toml pelo bootstrap. Cada fonte é montada SOMENTE LEITURA
+# em /sources/<name> no hub-rag (scripts/render-sources.py gera a montagem).
+#
+# collection: docs (seu conteúdo, trust=trusted) | docs_untrusted (baixado da internet,
+#             PDFs de terceiros: passa por saneamento + classificador) | code (opcional)
+# trust:      trusted | untrusted
+# selinux_relabel: true se o host tem SELinux enforcing e o container não consegue ler a pasta
+#                  (aplica :z, que muda o contexto SELinux dos arquivos).
+
+[[source]]
+name = "notas"
+host_path = "/home/voce/Documentos/notas"
+collection = "docs"
+trust = "trusted"
+enabled = false
+
+[[source]]
+name = "roblox-docs"
+host_path = "/home/voce/Documentos/roblox-creator-docs"
+collection = "docs_untrusted"
+trust = "untrusted"
+enabled = false

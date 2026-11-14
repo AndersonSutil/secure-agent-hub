@@ -1,0 +1,19 @@
+# pip install pre-commit && pre-commit install
+repos:
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.1
+    hooks:
+      - id: gitleaks
+  - repo: local
+    hooks:
+      - id: private-terms
+        name: termos privados (overlay/private-terms.txt)
+        entry: scripts/check-private-terms.sh
+        language: script
+        pass_filenames: true
+      - id: render-policy
+        name: policy/ renderizada
+        entry: python3 scripts/render-policy.py --check
+        language: system
+        pass_filenames: false
+        files: ^(policy/|scripts/render-policy\.py)

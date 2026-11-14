@@ -1,0 +1,33 @@
+# Saída de rede por perfil (Fase 2). Renderizado para proxy/squid.conf.
+# LIMITE CONHECIDO: liberar domínios de provedores não impede exfiltração usando
+# uma chave de API do atacante nesses mesmos domínios (ver docs/MODELO-DE-AMEACAS.md).
+# Domínios extras locais: overlay/egress.local.toml (mesmo formato, chave `extra`).
+version = 1
+
+[deny]
+# Sempre negado, para todos os perfis.
+cidrs = [
+  "10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "100.64.0.0/10",
+  "127.0.0.0/8", "169.254.0.0/16", "fc00::/7", "fe80::/10", "::1/128",
+]
+domains = [
+  "host.containers.internal", "host.docker.internal",
+  "pastebin.com", "paste.ee", "hastebin.com", "transfer.sh", "0x0.st",
+  "file.io", "webhook.site", "requestbin.com", "ngrok.io", "ngrok-free.app",
+  "pipedream.net", "interact.sh", "oast.fun", "burpcollaborator.net",
+]
+
+[profiles.executor]
+description = "Agentes que mexem em código: só provedores, GitHub (leitura) e registries."
+domains = [
+  ".anthropic.com", "claude.ai",
+  ".openai.com", "chatgpt.com",
+  ".googleapis.com", "accounts.google.com",
+  "openbot.run", ".openbot.run",
+  "github.com", ".githubusercontent.com",
+  "registry.npmjs.org", "pypi.org", "files.pythonhosted.org",
+]
+
+[profiles.reader]
+description = "Fase 3: Pesquisador. Web aberta menos a denylist; não tem dados privados."
+domains = ["*"]

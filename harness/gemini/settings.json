@@ -1,0 +1,25 @@
+{
+  "tools": {
+    "exclude": [
+      "run_shell_command(nc)",
+      "run_shell_command(ncat)",
+      "run_shell_command(netcat)",
+      "run_shell_command(socat)",
+      "run_shell_command(telnet)",
+      "run_shell_command(ssh)",
+      "run_shell_command(scp)",
+      "run_shell_command(sftp)",
+      "run_shell_command(rsync)",
+      "run_shell_command(printenv)",
+      "run_shell_command(env)",
+      "run_shell_command(git push)",
+      "run_shell_command(podman)",
+      "run_shell_command(docker)",
+      "run_shell_command(nsenter)",
+      "run_shell_command(chroot)",
+      "run_shell_command(mount)",
+      "run_shell_command(sudo)",
+      "run_shell_command(su)"
+    ]
+  }
+}

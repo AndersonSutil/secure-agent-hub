@@ -1,0 +1,42 @@
+[project]
+name = "hub-rag"
+version = "0.1.0"
+description = "Indexador + servidor MCP de conhecimento e memória com proveniência e guardrails"
+requires-python = ">=3.12"
+dependencies = [
+  "mcp>=1.12,<2",
+  "uvicorn>=0.30",
+  "httpx>=0.27",
+  "qdrant-client>=1.15,<2",
+  "pypdf>=5.0",
+]
+
+[project.optional-dependencies]
+# Classificador de injeção (Prompt Guard). torch CPU é instalado à parte no Dockerfile.
+guard = ["transformers>=4.45,<5"]
+dev = ["pytest>=8", "ruff>=0.6"]
+
+[project.scripts]
+hub-rag-server = "hub_rag.mcp_server:main"
+hub-rag-index = "hub_rag.indexer:main"
+
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["hub_rag*"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "S"]
+ignore = ["S101"]  # assert em testes
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

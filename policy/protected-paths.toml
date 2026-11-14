@@ -1,0 +1,19 @@
+# Caminhos que, se alterados por agentes, bloqueiam o merge de volta para o host
+# (scripts/pull-from-agents.sh, Fase 2). São arquivos que configuram agentes ou
+# executam código na sua máquina: alterá-los é o caminho de uma injeção
+# "pular" do container para o host.
+version = 1
+
+globs = [
+  "CLAUDE.md", "**/CLAUDE.md", "AGENTS.md", "**/AGENTS.md", "GEMINI.md", "**/GEMINI.md",
+  ".claude/**", ".codex/**", ".gemini/**", ".agents/**", ".cursor/**",
+  ".mcp.json", "**/.mcp.json",
+  ".vscode/**", ".idea/**", ".devcontainer/**",
+  ".github/workflows/**", ".gitlab-ci.yml",
+  ".gitattributes", ".gitmodules", ".envrc",
+  "package.json", "**/package.json",
+  "Makefile", "**/Makefile", "justfile",
+  "rokit.toml", "aftman.toml", "wally.toml", "selene.toml", "stylua.toml",
+  "default.project.json", "*.project.json",
+  "**/*.sh", "**/*.ps1", "**/*.bat",
+]

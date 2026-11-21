@@ -51,6 +51,9 @@ case "${1:-}" in
       -v "$HUB_ROOT/harness/codex/rules/hub.rules:/data/.codex/rules/hub.rules:ro,z" \
       -v "$HUB_ROOT/harness/AGENTS.md:/data/.codex/AGENTS.md:ro,z" \
       "$OPENBOT_IMAGE" >/dev/null
+    # Containers já existentes (ex.: depois de um reboot) só precisam ser religados.
+    hpodman start "$SQ" >/dev/null
+    hpodman start "$OB" >/dev/null
     hpodman ps --filter "name=openbot-spike" --format '{{.Names}} {{.Status}}'
     ;;
   net)

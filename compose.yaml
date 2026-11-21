@@ -11,6 +11,11 @@ x-hardening: &hardening
   restart: unless-stopped
   security_opt: ["no-new-privileges:true"]
   networks: [hub-internal]
+  # Explícito de propósito: sem isto, containers criados pela API compat do podman
+  # (docker-compose) falham em `podman exec` e nos healthchecks com
+  # "crun: write to /proc/self/oom_score_adj: Permission denied" (visto após reboot,
+  # podman 6.1.3 / crun 1.31). Deve ser >= ao oom_score_adj da sua sessão (systemd --user: 200).
+  oom_score_adj: ${HUB_OOM_SCORE_ADJ:-200}
 
 services:
   qdrant:
